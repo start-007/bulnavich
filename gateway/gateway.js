@@ -2,18 +2,18 @@ const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
-const port = 3000; // Choose your desired port
+const port = process.env.GATEWAY_PORT || 3000;
 
 // Define backend servers
 const backendServers = [
-  { path: '/express', url: 'http://localhost:3001' }, // Replace with the URL of your Express.js server
-  { path: '/django', url: 'http://localhost:8000' },  // Replace with the URL of your Django server
+  { path: '/express', url: `http://localhost:${process.env.EXPRESS_PORT || 3001}` },
+  { path: '/django', url: `http://localhost:${process.env.DJANGO_PORT || 8000}` },
   // Add more backend servers as needed
 ];
 
 // Create proxies for each backend server
 backendServers.forEach(({ path, url }) => {
-  app.use(path, createProxyMiddleware({ target: url, changeOrigin: true }));
+  app.use(path, createProxyMiddleware({ target: url, pathRewrite: { [`^${path}`]: '' }, changeOrigin: true }));
 });
 
 // Default route for the gateway itself
